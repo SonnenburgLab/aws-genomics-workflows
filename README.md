@@ -13,75 +13,44 @@ If you want to customize these solutions, you can create your own distribution u
 Clone the repo
 
 ```bash
-git clone https://github.com/aws-samples/aws-genomics-workflows.git
+git clone https://github.com/SonnenburgLab/aws-genomics-workflows.git
 ```
 
 Create an S3 bucket in your AWS account to use for the distribution deployment
 
 ```bash
-aws s3 mb <dist-bucketname>
+bash setup.sh <BUCKET-NAME>
 ```
 
-Create and deploy a distribution from source
+This will create a `dist` folder in the root of the project with subfolders `dist/artifacts` and `dist/templates` that will be uploaded to the S3 bucket you created above. The command will also output two values `TEMPLATE_ROOT_URL` and `AMAZON_S3_URI`
+
+At this point, it's easier to go to your cloud formation console and create a new stack.
+
+- Under `Prepare template` select `Template is ready`
+- Under `Template source` select `Amazon S3 URL` and paste the `AMAZON_S3_URI` output from the above script
+
+Other defaults for the sonnenburg setup:
 
 ```bash
-cd aws-genomics-workflows
-bash _scripts/deploy.sh --deploy-region <region> --asset-profile <profile-name> --asset-bucket s3://<dist-bucketname> test
+VPC ID = `vpc-aca08fd4`
+Subnets = `subnet-306b691b,subnet-6cab0e26,subnet-2de26870,subnet-ec47ff94`
+Number of subnets = `4`
+Artifact Bucket = same as input to `setup.sh` script; default `sonn-pipelines-assets`
+Results Bucket = `sonn-nextflow-results`
+ExistingBucket = true if using the default else false
+Create EFS = Yes; you do not have to create a new one though, simply select No here and provide the EFS ID in the next textbox
+FSx = No
+Max CPUs = 4096
 ```
 
-This will create a `dist` folder in the root of the project with subfolders `dist/artifacts` and `dist/templates` that will be uploaded to the S3 bucket you created above.
-
-Use `--asset-profile` option to specify an AWS profile to use to make the deployment.
-
-**Note**: the region set for `--deploy-region` should match the region the bucket `<dist-bucketname>` is created in.
-
-You can now use your deployed distribution to launch stacks using the AWS CLI. For example, to launch the GWFCore stack:
+**NOTE about instance types used in the compute environments**
+Default values for `BatchComputeInstanceTypes` in the file `gwfcore-root.template.yaml` was updated to the line below. The compute environments now consists of all available c5, c6i, r5, r6i, m5 and m6i instances. All instances are based on the Intel Xenon architecture
 
 ```bash
-TEMPLATE_ROOT_URL=https://<dist-bucketname>.s3-<region>.amazonaws.com/test/templates
-
-aws cloudformation create-stack \
-    --region <region> \
-    --stack-name <stackname> \
-    --template-url $TEMPLATE_ROOT_URL/gwfcore/gwfcore-root.template.yaml \
-    --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
-    --parameters \
-        ParameterKey=VpcId,ParameterValue=<vpc-id> \
-        ParameterKey=SubnetIds,ParameterValue=\"<subnet-id-1>,<subnet-id-2>,...\" \
-        ParameterKey=ArtifactBucketName,ParameterValue=<dist-bucketname> \
-        ParameterKey=TemplateRootUrl,ParameterValue=$TEMPLATE_ROOT_URL \
-        ParameterKey=S3BucketName,ParameterValue=<store-buketname> \
-        ParameterKey=ExistingBucket,ParameterValue=false
-
+c5.large,c5.xlarge,c5.2xlarge,c5.4xlarge,c5.9xlarge,c5.12xlarge,c5.18xlarge,c5.24xlarge,c6i.large,c6i.xlarge,c6i.2xlarge,c6i.4xlarge,c6i.8xlarge,c6i.12xlarge,c6i.16xlarge,c6i.24xlarge,c6i.32xlarge,m5.large,m5.xlarge,m5.2xlarge,m5.4xlarge,m5.8xlarge,m5.12xlarge,m5.16xlarge,m5.24xlarge,m6i.large,m6i.xlarge,m6i.2xlarge,m6i.4xlarge,m6i.8xlarge,m6i.12xlarge,m6i.16xlarge,m6i.24xlarge,m6i.32xlarge,r5.large,r5.xlarge,r5.2xlarge,r5.4xlarge,r5.8xlarge,r5.12xlarge,r5.16xlarge,r5.24xlarge,r6i.large,r6i.xlarge,r6i.2xlarge,r6i.4xlarge,r6i.8xlarge,r6i.12xlarge,r6i.16xlarge,r6i.24xlarge,r6i.32xlarge
 ```
 
-## Shared File System Support
-
-Amazon EFS is supported out of the box for `GWFCore` and `Nextflow`. You have two options to use EFS.
-
-1. **Create a new EFS File System:** Be sure to have `CreateEFS` set to `Yes` and also include the total number of subnets.
-2. **Use an Existing EFS File System:** Be sure to specify the EFS ID in the `ExistingEFS` parameter. This file system should be accessible from every subnet you specify.
-
-Following successful deployment of `GWFCore`, when creating your Nextflow Resources, set `MountEFS` to `Yes`.
-
-## Building the documentation
-
-The documentation is built using mkdocs.
-
-Install dependencies:
-
-```bash
-$ conda env create --file environment.yaml
-```
-
-This will create a `conda` environment called `mkdocs`
-
-Build the docs:
-
-```bash
-$ conda activate mkdocs
-$ mkdocs build
-```
+In order to update this, you'd have to update the file and relaunch the entire setup.
 
 ## License Summary
 
