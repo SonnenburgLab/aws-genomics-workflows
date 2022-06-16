@@ -52,6 +52,53 @@ c5.large,c5.xlarge,c5.2xlarge,c5.4xlarge,c5.9xlarge,c5.12xlarge,c5.18xlarge,c5.2
 
 In order to update this, you'd have to update the file and relaunch the entire setup.
 
+## Submitting Jobs
+
+> Before you can submit any jobs please make sure your AWS cli properly configured.
+
+### Using python
+
+Example of a python function that you may use to submit a job can be found in [`examples/example_submission.py`](examples/example_submission.py)
+
+### Using your terminal command line
+
+Here is a sample command.
+
+```bash
+aws batch submit-job \
+    --profile sonn \
+    --job-name nf-sonn-test \
+    --job-queue priority-nextflow-gwfcore \
+    --job-definition nextflow-nextflow-nextflow \
+    --container-overrides command=nextflow-io/rnatoy
+```
+
+- `--profile` this is an optional flag, generally used when you have more than one AWS accounts configured on your system.
+- `--job-name` this flag assigns an identifyable name to the job submitted on your head node, try to keep it under 80 chars.
+- `--job-queue` this should be one of `priority-nextflow-gwfcore` or `default-nextflow-gwfcore`. Usually, if you're using an on-demand instance as your head node, you would submit the job on the `priority-nextflow-gwfcore` queue and have your worker nodes run on `default-nextflow-gwfcore` (this is a setting in your nextflow config)
+- `--job-definition` this should ALWAYS be `nextflow-nextflow-nextflow` (yes, it's a weird name. it's a quirk of the automated infrastrucutre deployment script)
+- `--container-overrides command=` this is where you'd specify your github repo. Additional flags and values can be provided as a comma-sep list (no spaces between commas!!). Example:
+
+```bash
+--container-overrides command=nextflow-io/rnatoy\
+"--arg1","arg1_value",\
+"--arg2","arg2_value",\
+"--arg3","arg3_value"
+```
+
+Example of an actual command on the Fischbach Lab infrastructure (this will not work for you):
+
+```bash
+aws batch submit-job \
+    --profile maf \
+    --job-name nf-blast-0825-2 \
+    --job-queue default-maf-pipelines \
+    --job-definition nextflow-production \
+    --container-overrides command=FischbachLab/nf-blast,\
+"--query","s3://nextflow-pipelines/blast/data/TY0000004.cons.fa",\
+"--db","nt"
+```
+
 ## License Summary
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
