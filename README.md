@@ -31,14 +31,14 @@ At this point, it's easier to go to your cloud formation console and create a ne
 
 Other defaults for the sonnenburg setup:
 
-```bash
-VPC ID = `vpc-aca08fd4`
-Subnets = `subnet-306b691b,subnet-6cab0e26,subnet-2de26870,subnet-ec47ff94`
-Number of subnets = `4`
-Artifact Bucket = same as input to `setup.sh` script; default `sonn-pipelines-assets`
-Results Bucket = `sonn-nextflow-results`
-ExistingBucket = true if using the default else false
-Create EFS = Yes; you do not have to create a new one though, simply select No here and provide the EFS ID in the next textbox
+```md
+VPC ID = vpc-aca08fd4
+Subnets = subnet-306b691b,subnet-6cab0e26,subnet-2de26870,subnet-ec47ff94
+Number of subnets = 4
+Artifact Bucket = same as input to 'setup.sh' script; default 'sonn-pipelines-assets'
+Results Bucket = sonn-nextflow-results
+ExistingBucket = 'true' if using the default else 'false'
+Create EFS = 'Yes'; you do not have to create a new one, simply select 'No' here and provide the existing EFS ID in the next textbox
 FSx = No
 Max CPUs = 4096
 ```
