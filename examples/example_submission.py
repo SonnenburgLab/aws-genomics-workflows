@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import boto3
+import pandas as pd
 from numpy import random
 from time import sleep
 
@@ -12,7 +13,6 @@ def submit_batch_job(
     branch="main",
     job_queue="priority-nextflow-gwfcore",
     job_definition="nextflow-nextflow-nextflow",
-    session=sonn,
 ):
     """Submit jobs for the nf-placeholder pipeline to AWS Batch
 
@@ -29,7 +29,12 @@ def submit_batch_job(
     Returns:
         _type_: _description_
     """
+
+    # Create a session object using the AWS profile you'd like to use.
+    session = boto3.session.Session()
     batch = session.client("batch")
+
+    # Submit the job; capture the response
     response = batch.submit_job(
         jobName=f"nf-ph-{sample_name}",
         jobQueue=job_queue,
@@ -52,12 +57,25 @@ def submit_batch_job(
             ]
         },
     )
+
+    # the response is a JSON object that contains details about the job submission
+    # include the `jobId`. This `jobId` can be used with
+    # `batch.describe_jobs(jobs = [jobId])` to check on the status of the job.
     return response
 
 
+def read_manifest(filename: str) -> pd.DataFrame:
+    # code to read some input file and
+    # return a dataframe with headers as 'sampleName,R1,R2'
+    return
+
+
+### MAIN ###
+
 project = "project"
-my_manifest = "my_manifest"
-sonn = boto3.session.Session(profile_name="sonn")
+my_manifest_file = "my_manifest.file"
+my_manifest = read_manifest(my_manifest_file)
+
 responses = list()
 for row in my_manifest.itertuples():
     responses.append(submit_batch_job(project, row.sampleName, row.R1, row.R2))
